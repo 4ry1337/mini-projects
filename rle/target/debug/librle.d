@@ -1,0 +1,1 @@
+/mnt/windows/Users/thego/OneDrive/Документы/_Developments/github.com/4ry1337/mini-projects/rle/target/debug/librle.rlib: /mnt/windows/Users/thego/OneDrive/Документы/_Developments/github.com/4ry1337/mini-projects/rle/src/lib.rs
