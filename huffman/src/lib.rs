@@ -226,11 +226,11 @@ pub fn encode(data: &str) -> (String, HuffmanTable) {
 
     let canonical = HuffmanCode::as_canonical(&codes);
 
-    HuffmanCode::describe(&canonical);
+    // HuffmanCode::describe(&canonical);
 
     for i in data.as_bytes() {
         let x = canonical.iter().find(|&x| x.value == *i).unwrap();
-        result += &format!("{:0width$b} ", x.bits, width = x.length);
+        result += &format!("{:0width$b}", x.bits, width = x.length);
     }
 
     let table = HuffmanTable::from_codes(&canonical);
@@ -249,7 +249,7 @@ pub fn decode(data: &str, mut table: HuffmanTable) -> Option<Vec<u8>> {
         binary.push(i);
         if let Some(code) = codes
             .iter()
-            .find(|&code| format!("{:0width$b} ", code.bits, width = code.length) == binary)
+            .find(|&code| format!("{:0width$b}", code.bits, width = code.length) == binary)
         {
             result.push(code.value);
             binary.clear();
@@ -296,7 +296,11 @@ mod tests {
     fn compression_test() {
         let message = "the quick brown fox jumps over the lazy dog";
 
+        println!("Data: '{}'", message);
+
         let (encoded, table) = encode(message);
+
+        println!("Encoded: '{}'", encoded);
 
         let decoded = decode(&encoded, table);
 
