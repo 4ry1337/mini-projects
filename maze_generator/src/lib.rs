@@ -22,10 +22,15 @@ impl Maze {
     fn generate(height: u32, width: u32) -> Self {
         let mut map = vec![];
         let seed = 0;
-        for y in 0..height {
+        for y in 0..height + 1 {
             let mut row = vec![];
-            for x in 0..width {
-                row.push(Cell { y, x, wall: false })
+            for x in 0..width + 1 {
+                // Borders
+                if y == 0 || x == 0 || y == height || x == width {
+                    row.push(Cell { y, x, wall: true })
+                } else {
+                    row.push(Cell { y, x, wall: false })
+                }
             }
             map.push(row);
         }
@@ -64,7 +69,7 @@ mod tests {
 
     #[test]
     fn draw_test() {
-        let maze = Maze::generate(10, 10);
+        let maze = Maze::generate(20, 20);
         maze.draw()
     }
 }
