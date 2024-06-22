@@ -60,32 +60,49 @@ impl Maze {
         fn mark(x: usize, y: usize, grid: &mut Vec<Vec<Cell>>, frontiers: &mut Vec<Cell>) {
             grid[y][x].obsticle = false;
 
-            if y >= 2 && !frontiers.contains(&grid[y - 2][x]) && grid[y - 2][x].obsticle == true {
-                let frontier = grid[y - 2][x];
+            if y >= 1 && !frontiers.contains(&grid[y - 1][x]) && grid[y - 1][x].obsticle == true {
+                let frontier = grid[y - 1][x];
                 // println!("North frontier: {}", frontier);
                 frontiers.push(frontier);
             }
-            if y + 2 < grid.len()
-                && !frontiers.contains(&grid[y + 2][x])
-                && grid[y + 2][x].obsticle == true
+            if y + 1 < grid.len()
+                && !frontiers.contains(&grid[y + 1][x])
+                && grid[y + 1][x].obsticle == true
             {
-                let frontier = grid[y + 2][x];
+                let frontier = grid[y + 1][x];
                 // println!("South frontier: {}", frontier);
                 frontiers.push(frontier);
             }
-            if x >= 2 && !frontiers.contains(&grid[y][x - 2]) && grid[y][x - 2].obsticle == true {
-                let frontier = grid[y][x - 2];
+            if x >= 1 && !frontiers.contains(&grid[y][x - 1]) && grid[y][x - 1].obsticle == true {
+                let frontier = grid[y][x - 1];
                 // println!("West frontier: {}", frontier);
                 frontiers.push(frontier);
             }
-            if x + 2 < grid[0].len()
-                && !frontiers.contains(&grid[y][x + 2])
-                && grid[y][x + 2].obsticle == true
+            if x + 1 < grid[0].len()
+                && !frontiers.contains(&grid[y][x + 1])
+                && grid[y][x + 1].obsticle == true
             {
-                let frontier = grid[y][x + 2];
+                let frontier = grid[y][x + 1];
                 // println!("East frontier: {}", frontier);
                 frontiers.push(frontier);
             }
+        }
+
+        fn neighbor(x: usize, y: usize, grid: &Vec<Vec<Cell>>) -> u8 {
+            let mut neighbor = 0;
+            if y < grid.len() - 1 && grid[y + 1][x].obsticle == false {
+                neighbor += 1;
+            }
+            if y > 0 && grid[y - 1][x].obsticle == false {
+                neighbor += 1;
+            }
+            if x < grid[0].len() - 1 && grid[y][x + 1].obsticle == false {
+                neighbor += 1
+            }
+            if x > 0 && grid[y][x - 1].obsticle == false {
+                neighbor += 1;
+            }
+            neighbor
         }
 
         let mut grid = vec![];
@@ -129,32 +146,34 @@ impl Maze {
 
             frontiers.remove(cell_index);
 
-            while !possible_to_crave {
-                let direction = rng.gen_range(0..4);
-                if direction == 0 {
-                    if y >= 2 && grid[y - 2][x].obsticle == false {
-                        possible_to_crave = true;
-                        grid[y - 1][x].obsticle = false;
-                    }
-                } else if direction == 1 {
-                    if x + 2 < width && grid[y][x + 2].obsticle == false {
-                        possible_to_crave = true;
-                        grid[y][x + 1].obsticle = false;
-                    }
-                } else if direction == 2 {
-                    if y + 2 < height && grid[y + 2][x].obsticle == false {
-                        possible_to_crave = true;
-                        grid[y + 1][x].obsticle = false
-                    }
-                } else {
-                    if x >= 2 && grid[y][x - 2].obsticle == false {
-                        possible_to_crave = true;
-                        grid[y][x - 1].obsticle = false;
+            if neighbor(x, y, &grid) < 2 {
+                while !possible_to_crave {
+                    let direction = rng.gen_range(0..4);
+                    if direction == 0 {
+                        if y >= 1 && grid[y - 1][x].obsticle == false {
+                            possible_to_crave = true;
+                            // grid[y - 1][x].obsticle = false;
+                        }
+                    } else if direction == 1 {
+                        if x + 1 < width && grid[y][x + 1].obsticle == false {
+                            possible_to_crave = true;
+                            // grid[y][x + 1].obsticle = false;
+                        }
+                    } else if direction == 2 {
+                        if y + 1 < height && grid[y + 1][x].obsticle == false {
+                            possible_to_crave = true;
+                            // grid[y + 1][x].obsticle = false
+                        }
+                    } else {
+                        if x >= 1 && grid[y][x - 1].obsticle == false {
+                            possible_to_crave = true;
+                            // grid[y][x - 1].obsticle = false;
+                        }
                     }
                 }
+                mark(x, y, &mut grid, &mut frontiers);
             }
 
-            mark(x, y, &mut grid, &mut frontiers);
             // for row in grid.iter() {
             //     for cell in row.iter() {
             //         if cell.obsticle {
@@ -213,13 +232,13 @@ impl Maze {
         Ok(cell)
     }
 
-    pub fn set_start(&mut self, x: usize, y: usize) -> Result<&Cell, String> {
-        let cell = &mut self.grid[y][x];
-
-        self.start = cell.point.clone();
-
-        Ok(cell)
-    }
+    // pub fn set_start(&mut self, x: usize, y: usize) -> Result<&Cell, String> {
+    //     let cell = &mut self.grid[y][x];
+    //
+    //     self.start = cell.point.clone();
+    //
+    //     Ok(cell)
+    // }
 }
 
 // #[cfg(test)]
