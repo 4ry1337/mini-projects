@@ -124,8 +124,8 @@ impl Maze {
 
             let cell_index = rng.gen_range(0..frontiers.len());
 
-            let y = frontiers[cell_index].point.y;
             let x = frontiers[cell_index].point.x;
+            let y = frontiers[cell_index].point.y;
 
             frontiers.remove(cell_index);
 
@@ -155,17 +155,16 @@ impl Maze {
             }
 
             mark(x, y, &mut grid, &mut frontiers);
-            // for row in grid.iter() {
-            //     for cell in row.iter() {
-            //         if cell.obsticle {
-            //             print!("{}", OBSTICLE);
-            //         } else {
-            //             print!("{}", PATH);
-            //         }
-            //     }
-            //     println!();
-            // }
-            // println!();
+        }
+        let mut x = rng.gen_range(0..width);
+        let mut y = rng.gen_range(0..height);
+
+        let mut destanation_cell = grid[y][x];
+
+        while destanation_cell.point == start_cell.point || destanation_cell.obsticle == true {
+            x = rng.gen_range(0..width);
+            y = rng.gen_range(0..height);
+            destanation_cell = grid[y][x];
         }
 
         Self {
@@ -173,11 +172,40 @@ impl Maze {
             width,
             grid,
             start: start_cell.point,
-            destanation: Point {
-                x: height - 1,
-                y: width - 1,
-            },
+            destanation: destanation_cell.point,
         }
+    }
+
+    pub fn set_start(&mut self, x: usize, y: usize) -> Result<Point, String> {
+        let point = Point { x, y };
+
+        if self.grid[y][x].obsticle == true {
+            return Err(format!("Can't place path on wall at {}", point));
+        }
+
+        if self.destanation == point {
+            return Err(format!("Can't place path on destanation at {}", point));
+        }
+
+        self.start = point;
+
+        Ok(self.start)
+    }
+
+    pub fn set_destanation(&mut self, x: usize, y: usize) -> Result<Point, String> {
+        let point = Point { x, y };
+
+        if self.grid[y][x].obsticle == true {
+            return Err(format!("Can't place path on wall at {}", point));
+        }
+
+        if self.start == point {
+            return Err(format!("Can't place path on start at {}", point));
+        }
+
+        self.destanation = point;
+
+        Ok(self.destanation)
     }
 
     pub fn draw(&self) {
@@ -197,28 +225,6 @@ impl Maze {
             }
             println!();
         }
-    }
-
-    pub fn toggle(&mut self, x: usize, y: usize) -> Result<&Cell, String> {
-        let cell = &mut self.grid[y][x];
-
-        if self.destanation == cell.point || self.start == cell.point {
-            return Err(format!("{} can not be changed", cell));
-        }
-
-        // TODO decide if cell already obsticle return error or do nothing
-        // add cases for obsticles
-        cell.obsticle = !cell.obsticle;
-
-        Ok(cell)
-    }
-
-    pub fn set_start(&mut self, x: usize, y: usize) -> Result<&Cell, String> {
-        let cell = &mut self.grid[y][x];
-
-        self.start = cell.point.clone();
-
-        Ok(cell)
     }
 }
 
