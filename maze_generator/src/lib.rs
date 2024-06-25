@@ -1,4 +1,8 @@
-use std::fmt::Display;
+use std::{
+    collections::{BTreeSet, BinaryHeap, HashMap, HashSet},
+    fmt::Display,
+    usize,
+};
 
 use rand::{thread_rng, Rng};
 
@@ -7,7 +11,10 @@ pub const PATH: &'static str = "\x1B[47m  \x1B[0m"; //white
 pub const START: &'static str = "\x1B[42m  \x1B[0m"; //GREEN
 pub const DESTINATION: &'static str = "\x1B[41m  \x1B[0m"; //WHITE
 
-#[derive(Debug, Clone, Copy)]
+pub const TRACE: &'static str = "\x1B[44m  \x1B[0m"; //WHITE
+pub const EXPANDED: &'static str = "\x1B[46m  \x1B[0m"; //WHITE
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Point {
     pub x: usize,
     pub y: usize,
@@ -19,16 +26,22 @@ impl Display for Point {
     }
 }
 
-impl PartialEq for Point {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
+impl Point {
+    pub fn distance(&self, point: &Point) -> usize {
+        self.manhattan_distance(point)
     }
-    fn ne(&self, other: &Self) -> bool {
-        self.x != other.x && self.y != other.y
+    pub fn manhattan_distance(&self, point: &Point) -> usize {
+        self.x.abs_diff(point.x) + self.y.abs_diff(point.y)
+    }
+    pub fn euclidian_distance(&self, point: &Point) -> usize {
+        let diff_x = self.x.abs_diff(point.x);
+        let diff_y = self.y.abs_diff(point.y);
+        if diff_x > diff_y {
+            return 14 * diff_y + (diff_x - diff_y);
+        }
+        return 14 * diff_x + (diff_y - diff_x);
     }
 }
-
-impl Eq for Point {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Cell {
@@ -101,9 +114,6 @@ impl Maze {
             grid.push(row);
         }
 
-        //TODO add random start and destanation
-
-        //TODO generation Prim's Algorithm
         let mut rng = thread_rng();
 
         let x = rng.gen_range(0..width);
@@ -161,7 +171,11 @@ impl Maze {
 
         let mut destanation_cell = grid[y][x];
 
-        while destanation_cell.point == start_cell.point || destanation_cell.obsticle == true {
+        while destanation_cell.point == start_cell.point
+            || destanation_cell.obsticle == true
+                // not really necessary just to make distance between start and end cells bigger
+            || destanation_cell.point.distance(&start_cell.point) < (height + width) / 2
+        {
             x = rng.gen_range(0..width);
             y = rng.gen_range(0..height);
             destanation_cell = grid[y][x];
@@ -226,13 +240,148 @@ impl Maze {
             println!();
         }
     }
-}
 
-// #[cfg(test)]
-// mod tests {
-//     use crate::Maze;
-//
-//     #[test]
-//     fn draw_test() {
-//     }
-// }
+    fn neighbors(&self, point: &Point) -> Vec<&Cell> {
+        let mut points = Vec::new();
+        if 0 < point.x {
+            points.push(&self.grid[point.y][point.x - 1]);
+        }
+        if point.x < self.grid[0].len() - 1 {
+            points.push(&self.grid[point.y][point.x + 1]);
+        }
+        if 0 < point.y {
+            points.push(&self.grid[point.y - 1][point.x]);
+        }
+        if point.y < self.grid.len() - 1 {
+            points.push(&self.grid[point.y + 1][point.x]);
+        }
+        points
+    }
+
+    pub fn astar(&self) {
+        // the set of nodes to be evaluated
+        // the set of nodes already evaluated
+        // add start point to open
+
+        let mut open = HashSet::new();
+
+        let mut closed = HashSet::new();
+
+        open.insert(&self.start);
+
+        let mut g_scores = HashMap::new();
+
+        g_scores.insert(&self.start, 0);
+
+        let mut h_scores = HashMap::new();
+
+        h_scores.insert(&self.start, self.start.distance(&self.destanation));
+
+        let mut parent = HashMap::new();
+
+        // current = node in Open with the lowest f cost
+        // remove from Open
+        // add to Closed
+        // if current is the target node path has been found
+        // or else
+        // for each neighbor is not traversable or neighbor is in closed
+        //  skip to the next neighbor
+        // if new path to neighbor is shorter OR neighbor is not on Open
+        // set f cost of neighbor
+        // set parent of neighbor to current
+        // if neighbor is not in open
+        // add neighbor to open
+
+        let mut expanded = HashSet::new();
+
+        while open.len() > 0 {
+            let mut lowest_fscore = usize::max_value();
+            let mut point = &self.start;
+            let mut f_score;
+            for el in open.iter() {
+                f_score = g_scores[*el] + h_scores[*el];
+                if f_score <= lowest_fscore {
+                    lowest_fscore = f_score;
+                    point = *el;
+                }
+            }
+            expanded.insert(point);
+            open.remove(point);
+            closed.insert(point);
+            if point == &self.destanation {
+                break;
+            }
+            for neighbor in self.neighbors(point) {
+                if closed.contains(&neighbor.point) || neighbor.obsticle {
+                    continue;
+                }
+
+                let new_cost_to_neighbor: usize = g_scores[point] + point.distance(&neighbor.point);
+
+                open.insert(&neighbor.point);
+
+                if g_scores.get(&neighbor.point).is_some() {
+                    if new_cost_to_neighbor < g_scores[&neighbor.point] {
+                        g_scores.insert(&neighbor.point, new_cost_to_neighbor);
+                    }
+                } else {
+                    g_scores.insert(&neighbor.point, new_cost_to_neighbor);
+                }
+
+                parent.insert(&neighbor.point, point);
+
+                h_scores.insert(&neighbor.point, neighbor.point.distance(&self.destanation));
+            }
+            //
+            //for row in self.grid.iter() {
+            //    for cell in row.iter() {
+            //        if cell.obsticle {
+            //            print!("{}", OBSTICLE);
+            //        } else {
+            //            if cell.point == self.start {
+            //                print!("{}", START);
+            //            } else if cell.point == self.destanation {
+            //                print!("{}", DESTINATION);
+            //            } else if expanded.contains(&cell.point) {
+            //                print!("{}", EXPANDED);
+            //            } else {
+            //                print!("{}", PATH);
+            //            }
+            //        }
+            //    }
+            //    println!();
+            //}
+        }
+        let mut path = HashSet::new();
+
+        let mut current = &self.destanation;
+
+        while current != &self.start {
+            path.insert(current);
+            current = parent[current];
+        }
+
+        println!("---");
+
+        for row in self.grid.iter() {
+            for cell in row.iter() {
+                if cell.obsticle {
+                    print!("{}", OBSTICLE);
+                } else {
+                    if cell.point == self.start {
+                        print!("{}", START);
+                    } else if cell.point == self.destanation {
+                        print!("{}", DESTINATION);
+                    } else if path.contains(&cell.point) {
+                        print!("{}", TRACE);
+                    } else if expanded.contains(&cell.point) {
+                        print!("{}", EXPANDED);
+                    } else {
+                        print!("{}", PATH);
+                    }
+                }
+            }
+            println!();
+        }
+    }
+}
