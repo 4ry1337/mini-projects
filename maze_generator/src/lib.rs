@@ -1,18 +1,18 @@
 use std::{
-    collections::{BTreeSet, BinaryHeap, HashMap, HashSet},
+    collections::{HashMap, HashSet},
     fmt::Display,
     usize,
 };
 
 use rand::{thread_rng, Rng};
 
-pub const OBSTICLE: &'static str = "\x1B[40m  \x1B[0m"; //block
-pub const PATH: &'static str = "\x1B[47m  \x1B[0m"; //white
+pub const OBSTICLE: &'static str = "\x1B[40m  \x1B[0m"; //BLACK
+pub const PATH: &'static str = "\x1B[47m  \x1B[0m"; //WHITE
 pub const START: &'static str = "\x1B[42m  \x1B[0m"; //GREEN
-pub const DESTINATION: &'static str = "\x1B[41m  \x1B[0m"; //WHITE
+pub const DESTINATION: &'static str = "\x1B[41m  \x1B[0m"; //RED
 
-pub const TRACE: &'static str = "\x1B[44m  \x1B[0m"; //WHITE
-pub const EXPANDED: &'static str = "\x1B[46m  \x1B[0m"; //WHITE
+pub const TRACE: &'static str = "\x1B[44m  \x1B[0m"; //BLUE
+pub const EXPANDED: &'static str = "\x1B[46m  \x1B[0m"; //CYAN
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Point {
