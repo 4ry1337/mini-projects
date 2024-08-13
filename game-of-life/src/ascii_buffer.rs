@@ -1,27 +1,43 @@
-use std::{borrow::BorrowMut, cell::RefCell};
-
-pub const BLACK: &'static str = "\x1B[40m  \x1B[0m";
 pub const WHITE: &'static str = "\x1B[47m  \x1B[0m";
+pub const BLACK: &'static str = "\x1B[40m  \x1B[0m";
 
 #[derive(Debug, Clone)]
-struct FrameBuffer {
-    height: u16,
-    width: u16,
-    pixels: RefCell<Vec<bool>>,
+pub struct FrameBuffer {
+    height: usize,
+    width: usize,
+    pixels: Vec<bool>,
 }
 
 impl FrameBuffer {
-    fn new(height: u16, width: u16) -> Self {
+    pub fn new(height: usize, width: usize) -> Self {
         let size = height * width;
         Self {
             height,
             width,
-            pixels: vec![false; size.into()].into(),
+            pixels: vec![false; size].into(),
         }
     }
 
-    fn clear(self) -> Self {
-        self.pixels.borrow_mut().fill(false);
+    pub fn clear(mut self) -> Self {
+        self.pixels.fill(false);
+        self
+    }
+
+    pub fn draw(&self) {
+        for row in 0..self.height {
+            for col in 0..self.width {
+                if self.pixels[row * self.height + col] {
+                    print!("{}", WHITE);
+                } else {
+                    print!("{}", BLACK);
+                }
+            }
+            println!();
+        }
+    }
+
+    pub fn toggle(mut self, row: usize, col: usize) -> Self {
+        self.pixels[row * self.height + col] = !self.pixels[row * self.height + col];
         self
     }
 }
