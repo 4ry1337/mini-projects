@@ -1,6 +1,6 @@
-use game_of_life::ascii_buffer::FrameBuffer;
+use game_of_life::conway::Conway;
 
 fn main() {
-    let frame_buffer = FrameBuffer::new(32, 32);
-    frame_buffer.draw();
+    let conway = Conway::new(0, 0, 32, 32);
+    println!("{}", conway.neighbour_count(0, 0));
 }
