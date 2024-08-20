@@ -67,14 +67,6 @@ impl Conway {
         }
     }
 
-    // 0 1 2
-    // 3 4 5
-    // 6 7 8
-    //
-    // 00 01 02
-    // 10 11 12
-    // 20 21 22
-
     pub fn neighbour_count(&self, row: usize, col: usize) -> usize {
         let mut count: usize = 0;
         for i in 0..3 {
@@ -97,6 +89,7 @@ impl Conway {
     }
 
     pub fn update(&mut self) {
+        self.next_grid.fill(false);
         for row in 0..self.height {
             for col in 0..self.width {
                 let count = self.neighbour_count(row, col);
@@ -111,8 +104,6 @@ impl Conway {
                     if count == 3 {
                         self.set_next(row, col, true);
                         self.population += 1;
-                    } else {
-                        self.set_next(row, col, false);
                     }
                 }
             }
@@ -122,20 +113,15 @@ impl Conway {
     }
 
     fn swap(&mut self) {
-        std::mem::swap(&mut self.grid, &mut self.next_grid);
+        self.grid = self.next_grid.clone();
+        //std::mem::swap(&mut self.grid, &mut self.next_grid);
     }
 
     pub fn render(&self) {
-        print!("\x1B[2J\x1B[1;1H");
+        print!("\x1b[H");
         println!("seed: {}", self.seed);
         println!("tick: {}", self.tick);
         println!("population: {}", self.population);
-        //for row in 0..self.height {
-        //    for col in 0..self.width {
-        //        print!("{} ", self.neighbour_count(row, col));
-        //    }
-        //    println!()
-        //}
         for row in 0..self.height {
             for col in 0..self.width {
                 match *self.get(row, col).unwrap() {
@@ -148,9 +134,10 @@ impl Conway {
     }
 
     pub fn run(&mut self) {
+        print!("\x1b[2J");
         loop {
-            self.render();
             self.update();
+            self.render();
             sleep(Duration::from_millis(1000));
             if self.population == 0 {
                 self.render();
