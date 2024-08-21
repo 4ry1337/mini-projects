@@ -33,7 +33,7 @@ void display_grid(Game *game) {
   for (int row = 0; row < game->height; row++) {
     printf("%d ", row);
     for (int col = 0; col < game->width; col++) {
-      GridSquare curr = game->grid[row * game->height + col];
+      GridSquare curr = game->grid[row * game->width + col];
       printf("%c", !curr.isRobot ? SPACE : curr.alive ? ROBOT : DEAD_ROBOT);
     }
     printf("\n");
@@ -62,22 +62,22 @@ void clear_robots(Game *game) {
 }
 
 void move_robot_forward(Game *game, int row, int col) {
-  GridSquare *curr = &game->grid[row * game->height + col];
+  GridSquare *curr = &game->grid[row * game->width + col];
   if (!curr->isRobot || !curr->alive) {
     return;
   }
   GridSquare *next = NULL;
   if (curr->direction == 0 && col > 0) {
-    next = &game->grid[row * game->height + col - 1];
+    next = &game->grid[row * game->width + col - 1];
   }
   if (curr->direction == 1 && row > 0) {
-    next = &game->grid[(row - 1) * game->height + col];
+    next = &game->grid[(row - 1) * game->width + col];
   }
   if (curr->direction == 2 && col < SIZE) {
-    next = &game->grid[row * game->height + col + 1];
+    next = &game->grid[row * game->width + col + 1];
   }
   if (curr->direction == 3 && row < SIZE) {
-    next = &game->grid[(row + 1) * game->height + col];
+    next = &game->grid[(row + 1) * game->width + col];
   }
   if (next != NULL) {
     if (next->isRobot) {
