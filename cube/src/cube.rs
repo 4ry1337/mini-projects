@@ -1,50 +1,107 @@
-use std::{thread::sleep, time::Duration, usize};
+use std::{
+    ops::{Add, AddAssign},
+    thread::sleep,
+    time::Duration,
+    usize,
+};
 
+use rand::Rng;
+
+#[derive(Debug, Clone)]
+pub struct Angle(f32, f32, f32);
+
+impl Add for Angle {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+    }
+}
+
+impl AddAssign for Angle {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = Self(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+    }
+}
+
+impl Angle {
+    pub fn random(rand_min: f32, rand_max: f32) -> Self {
+        let mut rng = rand::thread_rng();
+        let x = rng.gen_range(rand_min..=rand_max);
+        let y = rng.gen_range(rand_min..=rand_max);
+        let z = rng.gen_range(rand_min..=rand_max);
+        Self(x, y, z)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Cube {
     width: i32,
     height: i32,
-    a: f32,
-    b: f32,
-    c: f32,
+    angle: Angle,
     cube_width: i32,
     f_cube_width: f32,
     z_buffer: Vec<f32>,
-    buffer: Vec<char>,
+    buffer: Vec<u8>,
     distance_from_cam: f32,
     horizontal_offset_value: f32,
     horizontal_offset: f32,
-    increment_speed: f32,
+    random_speed: bool,
+    random_speed_min: f32,
+    random_speed_max: f32,
+    rotation_speed: Angle,
     k1: f32,
     tick: usize,
 }
 
+const COLORS: [&str; 7] = [
+    " ",
+    "\x1B[38;5;46m*\x1B[0m",
+    "\x1B[38;5;47m*\x1B[0m",
+    "\x1B[38;5;48m*\x1B[0m",
+    "\x1B[38;5;49m*\x1B[0m",
+    "\x1B[38;5;50m*\x1B[0m",
+    "\x1B[38;5;51m*\x1B[0m",
+];
+
 impl Cube {
-    pub fn new(
-        height: i32,
-        width: i32,
-        cube_width: i32,
-        horizontal_offset_value: f32,
-        distance_from_cam: f32,
-        increment_speed: f32,
-        k1: f32,
-    ) -> Self {
+    pub fn new(height: i32, width: i32, cube_width: i32) -> Self {
         let size = width * height;
         Self {
             width,
             height,
             cube_width,
-            a: 0.0,
-            b: 0.0,
-            c: 0.0,
+            angle: Angle(0.0, 0.0, 0.0),
             f_cube_width: cube_width as f32,
             z_buffer: vec![0.0; size.try_into().unwrap()],
-            buffer: vec![' '; size.try_into().unwrap()],
-            distance_from_cam,
+            buffer: vec![0; size.try_into().unwrap()],
+            distance_from_cam: 100.0,
             horizontal_offset: 0.0,
-            horizontal_offset_value,
-            increment_speed,
-            k1,
+            horizontal_offset_value: 0.0,
+            random_speed: false,
+            random_speed_min: 0.0,
+            random_speed_max: 0.20,
+            rotation_speed: Angle(0.07, 0.07, 0.1),
+            k1: 40.0,
             tick: 0,
+        }
+    }
+
+    pub fn random_rotation(&mut self) {
+        self.random_speed = true;
+    }
+
+    pub fn set_initial_rotation(&mut self, x: f32, y: f32, z: f32) {
+        self.angle = Angle(x, y, z);
+    }
+
+    pub fn set_speed(&mut self, x: f32, y: f32, z: f32) {
+        self.rotation_speed = Angle(x, y, z);
+    }
+
+    pub fn speed(&self) -> Angle {
+        match self.random_speed {
+            true => Angle::random(self.random_speed_min, self.random_speed_max),
+            false => self.rotation_speed.clone(),
         }
     }
 
@@ -58,47 +115,41 @@ impl Cube {
     }
 
     fn update(&mut self) {
-        self.a += self.increment_speed;
-        self.b += self.increment_speed;
-        self.c += 0.01;
-        self.buffer.fill(' ');
+        self.angle += self.speed();
+        self.buffer.fill(0);
         self.z_buffer.fill(0.0);
         self.horizontal_offset = self.horizontal_offset_value * self.cube_width as f32;
         let mut cube_x = -self.f_cube_width;
         while cube_x < self.cube_width as f32 {
             let mut cube_y = -self.cube_width as f32;
             while cube_y < self.cube_width as f32 {
-                self.calculate_for_surface(cube_x, cube_y, -self.f_cube_width, '@');
-                self.calculate_for_surface(self.f_cube_width, cube_y, cube_x, '$');
-                self.calculate_for_surface(-self.f_cube_width, cube_y, -cube_x, '~');
-                self.calculate_for_surface(-cube_x, cube_y, self.f_cube_width, '#');
-                self.calculate_for_surface(cube_x, -self.f_cube_width, -cube_y, ';');
-                self.calculate_for_surface(cube_x, self.f_cube_width, cube_y, '+');
-                cube_y += self.increment_speed;
+                self.calculate_for_surface(cube_x, cube_y, -self.f_cube_width, 1);
+                self.calculate_for_surface(self.f_cube_width, cube_y, cube_x, 2);
+                self.calculate_for_surface(-self.f_cube_width, cube_y, -cube_x, 3);
+                self.calculate_for_surface(-cube_x, cube_y, self.f_cube_width, 4);
+                self.calculate_for_surface(cube_x, -self.f_cube_width, -cube_y, 5);
+                self.calculate_for_surface(cube_x, self.f_cube_width, cube_y, 6);
+                cube_y += self.speed().1;
             }
-            cube_x += self.increment_speed;
+            cube_x += self.speed().0;
         }
     }
 
     fn render(&mut self) {
         println!("\x1b[Htick: {}", self.tick);
-        for _ in 0..self.width as usize + 1 {
-            print!("\x1B[42m \x1B[0m");
-        }
         for i in 0..self.height as usize {
-            print!("\x1B[42m \x1B[0m");
             for j in 0..self.width as usize {
-                print!("{}", self.buffer[i * self.width as usize + j]);
+                print!(
+                    "{}",
+                    COLORS[self.buffer[i * self.width as usize + j] as usize]
+                );
             }
-            println!("\x1B[42m \x1B[0m");
-        }
-        for _ in 0..self.width as usize + 2 {
-            print!("\x1B[42m \x1B[0m");
+            println!("");
         }
         self.tick += 1;
     }
 
-    fn calculate_for_surface(&mut self, cube_x: f32, cube_y: f32, cube_z: f32, ch: char) {
+    fn calculate_for_surface(&mut self, cube_x: f32, cube_y: f32, cube_z: f32, value: u8) {
         let x = self.calculate_x(cube_x, cube_y, cube_z);
         let y = self.calculate_y(cube_x, cube_y, cube_z);
         let mut z = self.calculate_z(cube_x, cube_y, cube_z) + self.distance_from_cam;
@@ -117,28 +168,30 @@ impl Cube {
         if idx >= 0 && idx < self.width * self.height {
             if ooz > self.z_buffer[idx as usize] {
                 self.z_buffer[idx as usize] = ooz;
-                self.buffer[idx as usize] = ch;
+                self.buffer[idx as usize] = value;
             }
         }
     }
 
     fn calculate_x(&self, i: f32, j: f32, k: f32) -> f32 {
-        return j * f32::sin(self.a) * f32::sin(self.b) * f32::cos(self.c)
-            - k * f32::cos(self.a) * f32::sin(self.b) * f32::cos(self.c)
-            + j * f32::cos(self.a) * f32::sin(self.c)
-            + k * f32::sin(self.a) * f32::sin(self.c)
-            + i * f32::cos(self.b) * f32::cos(self.c);
+        return j * f32::sin(self.angle.0) * f32::sin(self.angle.1) * f32::cos(self.angle.2)
+            - k * f32::cos(self.angle.0) * f32::sin(self.angle.1) * f32::cos(self.angle.2)
+            + j * f32::cos(self.angle.0) * f32::sin(self.angle.2)
+            + k * f32::sin(self.angle.0) * f32::sin(self.angle.2)
+            + i * f32::cos(self.angle.1) * f32::cos(self.angle.2);
     }
 
     fn calculate_y(&self, i: f32, j: f32, k: f32) -> f32 {
-        return j * f32::cos(self.a) * f32::cos(self.c) + k * f32::sin(self.a) * f32::cos(self.c)
-            - j * f32::sin(self.a) * f32::sin(self.b) * f32::sin(self.c)
-            + k * f32::cos(self.a) * f32::sin(self.b) * f32::sin(self.c)
-            - i * f32::cos(self.b) * f32::sin(self.c);
+        return j * f32::cos(self.angle.0) * f32::cos(self.angle.2)
+            + k * f32::sin(self.angle.0) * f32::cos(self.angle.2)
+            - j * f32::sin(self.angle.0) * f32::sin(self.angle.1) * f32::sin(self.angle.2)
+            + k * f32::cos(self.angle.0) * f32::sin(self.angle.1) * f32::sin(self.angle.2)
+            - i * f32::cos(self.angle.1) * f32::sin(self.angle.2);
     }
 
     fn calculate_z(&self, i: f32, j: f32, k: f32) -> f32 {
-        return k * f32::cos(self.a) * f32::cos(self.b) - j * f32::sin(self.a) * f32::cos(self.b)
-            + i * f32::sin(self.b);
+        return k * f32::cos(self.angle.0) * f32::cos(self.angle.1)
+            - j * f32::sin(self.angle.0) * f32::cos(self.angle.1)
+            + i * f32::sin(self.angle.1);
     }
 }
