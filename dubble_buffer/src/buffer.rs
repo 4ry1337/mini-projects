@@ -11,7 +11,7 @@ impl FrameBuffer {
         Self {
             height,
             width,
-            pixels: vec![' '; size].into(),
+            pixels: vec![' '; size],
         }
     }
 
@@ -46,7 +46,7 @@ impl Default for FrameBuffer {
         Self {
             height: 10,
             width: 10,
-            pixels: vec![' '; 100].into(),
+            pixels: vec![' '; 100],
         }
     }
 }

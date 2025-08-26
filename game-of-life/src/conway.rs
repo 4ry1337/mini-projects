@@ -2,8 +2,8 @@ use std::{thread::sleep, time::Duration};
 
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
-pub const DEATH: &'static str = "\x1B[47m  \x1B[0m"; //WHITE
-pub const LIFE: &'static str = "\x1B[42m  \x1B[0m"; //GREEN
+pub const DEATH: &str = "\x1B[47m  \x1B[0m"; //WHITE
+pub const LIFE: &str = "\x1B[42m  \x1B[0m"; //GREEN
 
 pub struct Conway {
     seed: u64,
@@ -94,17 +94,15 @@ impl Conway {
             for col in 0..self.width {
                 let count = self.neighbour_count(row, col);
                 if *self.get(row, col).unwrap() {
-                    if count < 2 || count > 3 {
+                    if !(2..=3).contains(&count) {
                         self.set_next(row, col, false);
                         self.population -= 1;
                     } else {
                         self.set_next(row, col, true);
                     }
-                } else {
-                    if count == 3 {
-                        self.set_next(row, col, true);
-                        self.population += 1;
-                    }
+                } else if count == 3 {
+                    self.set_next(row, col, true);
+                    self.population += 1;
                 }
             }
         }
@@ -125,8 +123,8 @@ impl Conway {
         for row in 0..self.height {
             for col in 0..self.width {
                 match *self.get(row, col).unwrap() {
-                    true => print!("{}", LIFE),
-                    false => print!("{}", DEATH),
+                    true => print!("{LIFE}"),
+                    false => print!("{DEATH}"),
                 }
             }
             println!()

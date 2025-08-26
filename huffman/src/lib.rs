@@ -19,7 +19,7 @@ impl Ord for HuffmanNode {
 
 impl PartialOrd for HuffmanNode {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -64,10 +64,7 @@ impl HuffmanNode {
             }
         }
 
-        match queue.pop() {
-            None => None,
-            Some(root) => Some(Box::new(root)),
-        }
+        queue.pop().map(Box::new)
     }
 }
 
@@ -78,7 +75,7 @@ pub struct HuffmanTable {
 }
 
 impl HuffmanTable {
-    pub fn from_codes(codes: &Vec<HuffmanCode>) -> Self {
+    pub fn from_codes(codes: &[HuffmanCode]) -> Self {
         let mut counts = BTreeMap::new();
         let mut symbols = vec![];
 
@@ -115,7 +112,7 @@ impl Ord for HuffmanCode {
 
 impl PartialOrd for HuffmanCode {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -147,7 +144,7 @@ impl HuffmanCode {
 
         let mut result = vec![];
 
-        collect(&mut result, &tree, 0, 0);
+        collect(&mut result, tree, 0, 0);
 
         result
     }
@@ -180,8 +177,8 @@ impl HuffmanCode {
         result
     }
 
-    pub fn as_canonical(codes: &Vec<Self>) -> Vec<Self> {
-        let mut sorted: Vec<Self> = codes.iter().cloned().collect();
+    pub fn as_canonical(codes: &[Self]) -> Vec<Self> {
+        let mut sorted: Vec<Self> = codes.to_vec();
 
         sorted.sort();
 
@@ -201,7 +198,7 @@ impl HuffmanCode {
         sorted
     }
 
-    pub fn describe(codes: &Vec<Self>) {
+    pub fn describe(codes: &[Self]) {
         print!("char\tutf8\tfreq\tlength\tbits\n- - - - - - - - - - - - - - - - - -\n");
         for code in codes.iter() {
             println!(
@@ -296,11 +293,11 @@ mod tests {
     fn compression_test() {
         let message = "the quick brown fox jumps over the lazy dog";
 
-        println!("Data: '{}'", message);
+        println!("Data: '{message}'");
 
         let (encoded, table) = encode(message);
 
-        println!("Encoded: '{}'", encoded);
+        println!("Encoded: '{encoded}'");
 
         let decoded = decode(&encoded, table);
 
@@ -309,8 +306,8 @@ mod tests {
 
         let len_uncompressed: f32 = message.len() as f32 * 4.0 * 8.0;
         let len_compressed: f32 = encoded.len() as f32;
-        println!("Uncompressed Bitwise Length {}", len_uncompressed);
-        println!("Bitwise Length {}", len_compressed);
+        println!("Uncompressed Bitwise Length {len_uncompressed}");
+        println!("Bitwise Length {len_compressed}");
         println!(
             "Compression Rate: {}%",
             (len_compressed / len_uncompressed) * 100.0
