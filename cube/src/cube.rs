@@ -2,7 +2,6 @@ use std::{
     ops::{Add, AddAssign},
     thread::sleep,
     time::Duration,
-    usize,
 };
 
 use rand::Rng;
@@ -144,7 +143,7 @@ impl Cube {
                     COLORS[self.buffer[i * self.width as usize + j] as usize]
                 );
             }
-            println!("");
+            println!();
         }
         self.tick += 1;
     }
@@ -165,33 +164,31 @@ impl Cube {
         let yp = (self.height as f32 / 2.0 + self.k1 * ooz * y) as i32;
 
         let idx = xp + yp * self.width;
-        if idx >= 0 && idx < self.width * self.height {
-            if ooz > self.z_buffer[idx as usize] {
-                self.z_buffer[idx as usize] = ooz;
-                self.buffer[idx as usize] = value;
-            }
+        if idx >= 0 && idx < self.width * self.height && ooz > self.z_buffer[idx as usize] {
+            self.z_buffer[idx as usize] = ooz;
+            self.buffer[idx as usize] = value;
         }
     }
 
     fn calculate_x(&self, i: f32, j: f32, k: f32) -> f32 {
-        return j * f32::sin(self.angle.0) * f32::sin(self.angle.1) * f32::cos(self.angle.2)
+        j * f32::sin(self.angle.0) * f32::sin(self.angle.1) * f32::cos(self.angle.2)
             - k * f32::cos(self.angle.0) * f32::sin(self.angle.1) * f32::cos(self.angle.2)
             + j * f32::cos(self.angle.0) * f32::sin(self.angle.2)
             + k * f32::sin(self.angle.0) * f32::sin(self.angle.2)
-            + i * f32::cos(self.angle.1) * f32::cos(self.angle.2);
+            + i * f32::cos(self.angle.1) * f32::cos(self.angle.2)
     }
 
     fn calculate_y(&self, i: f32, j: f32, k: f32) -> f32 {
-        return j * f32::cos(self.angle.0) * f32::cos(self.angle.2)
+        j * f32::cos(self.angle.0) * f32::cos(self.angle.2)
             + k * f32::sin(self.angle.0) * f32::cos(self.angle.2)
             - j * f32::sin(self.angle.0) * f32::sin(self.angle.1) * f32::sin(self.angle.2)
             + k * f32::cos(self.angle.0) * f32::sin(self.angle.1) * f32::sin(self.angle.2)
-            - i * f32::cos(self.angle.1) * f32::sin(self.angle.2);
+            - i * f32::cos(self.angle.1) * f32::sin(self.angle.2)
     }
 
     fn calculate_z(&self, i: f32, j: f32, k: f32) -> f32 {
-        return k * f32::cos(self.angle.0) * f32::cos(self.angle.1)
+        k * f32::cos(self.angle.0) * f32::cos(self.angle.1)
             - j * f32::sin(self.angle.0) * f32::cos(self.angle.1)
-            + i * f32::sin(self.angle.1);
+            + i * f32::sin(self.angle.1)
     }
 }
