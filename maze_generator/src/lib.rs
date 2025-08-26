@@ -1,18 +1,17 @@
 use std::{
     collections::{HashMap, HashSet},
     fmt::Display,
-    usize,
 };
 
 use rand::{thread_rng, Rng};
 
-pub const OBSTICLE: &'static str = "\x1B[40m  \x1B[0m"; //BLACK
-pub const PATH: &'static str = "\x1B[47m  \x1B[0m"; //WHITE
-pub const START: &'static str = "\x1B[42m  \x1B[0m"; //GREEN
-pub const DESTINATION: &'static str = "\x1B[41m  \x1B[0m"; //RED
+pub const OBSTICLE: &str = "\x1B[40m  \x1B[0m"; //BLACK
+pub const PATH: &str = "\x1B[47m  \x1B[0m"; //WHITE
+pub const START: &str = "\x1B[42m  \x1B[0m"; //GREEN
+pub const DESTINATION: &str = "\x1B[41m  \x1B[0m"; //RED
 
-pub const TRACE: &'static str = "\x1B[44m  \x1B[0m"; //BLUE
-pub const EXPANDED: &'static str = "\x1B[46m  \x1B[0m"; //CYAN
+pub const TRACE: &str = "\x1B[44m  \x1B[0m"; //BLUE
+pub const EXPANDED: &str = "\x1B[46m  \x1B[0m"; //CYAN
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Point {
@@ -39,7 +38,7 @@ impl Point {
         if diff_x > diff_y {
             return 14 * diff_y + (diff_x - diff_y);
         }
-        return 14 * diff_x + (diff_y - diff_x);
+        14 * diff_x + (diff_y - diff_x)
     }
 }
 
@@ -70,30 +69,30 @@ pub struct Maze {
 
 impl Maze {
     pub fn generate(height: usize, width: usize) -> Self {
-        fn mark(x: usize, y: usize, grid: &mut Vec<Vec<Cell>>, frontiers: &mut Vec<Cell>) {
+        fn mark(x: usize, y: usize, grid: &mut [Vec<Cell>], frontiers: &mut Vec<Cell>) {
             grid[y][x].obsticle = false;
 
-            if y >= 2 && !frontiers.contains(&grid[y - 2][x]) && grid[y - 2][x].obsticle == true {
+            if y >= 2 && !frontiers.contains(&grid[y - 2][x]) && grid[y - 2][x].obsticle {
                 let frontier = grid[y - 2][x];
                 // println!("North frontier: {}", frontier);
                 frontiers.push(frontier);
             }
             if y + 2 < grid.len()
                 && !frontiers.contains(&grid[y + 2][x])
-                && grid[y + 2][x].obsticle == true
+                && grid[y + 2][x].obsticle
             {
                 let frontier = grid[y + 2][x];
                 // println!("South frontier: {}", frontier);
                 frontiers.push(frontier);
             }
-            if x >= 2 && !frontiers.contains(&grid[y][x - 2]) && grid[y][x - 2].obsticle == true {
+            if x >= 2 && !frontiers.contains(&grid[y][x - 2]) && grid[y][x - 2].obsticle {
                 let frontier = grid[y][x - 2];
                 // println!("West frontier: {}", frontier);
                 frontiers.push(frontier);
             }
             if x + 2 < grid[0].len()
                 && !frontiers.contains(&grid[y][x + 2])
-                && grid[y][x + 2].obsticle == true
+                && grid[y][x + 2].obsticle
             {
                 let frontier = grid[y][x + 2];
                 // println!("East frontier: {}", frontier);
@@ -129,7 +128,7 @@ impl Maze {
         //3 x 1
         //  2
 
-        while frontiers.len() > 0 {
+        while !frontiers.is_empty() {
             let mut possible_to_crave = false;
 
             let cell_index = rng.gen_range(0..frontiers.len());
@@ -142,25 +141,23 @@ impl Maze {
             while !possible_to_crave {
                 let direction = rng.gen_range(0..4);
                 if direction == 0 {
-                    if y >= 2 && grid[y - 2][x].obsticle == false {
+                    if y >= 2 && !grid[y - 2][x].obsticle {
                         possible_to_crave = true;
                         grid[y - 1][x].obsticle = false;
                     }
                 } else if direction == 1 {
-                    if x + 2 < width && grid[y][x + 2].obsticle == false {
+                    if x + 2 < width && !grid[y][x + 2].obsticle {
                         possible_to_crave = true;
                         grid[y][x + 1].obsticle = false;
                     }
                 } else if direction == 2 {
-                    if y + 2 < height && grid[y + 2][x].obsticle == false {
+                    if y + 2 < height && !grid[y + 2][x].obsticle {
                         possible_to_crave = true;
                         grid[y + 1][x].obsticle = false
                     }
-                } else {
-                    if x >= 2 && grid[y][x - 2].obsticle == false {
-                        possible_to_crave = true;
-                        grid[y][x - 1].obsticle = false;
-                    }
+                } else if x >= 2 && !grid[y][x - 2].obsticle {
+                    possible_to_crave = true;
+                    grid[y][x - 1].obsticle = false;
                 }
             }
 
@@ -172,7 +169,7 @@ impl Maze {
         let mut destanation_cell = grid[y][x];
 
         while destanation_cell.point == start_cell.point
-            || destanation_cell.obsticle == true
+            || destanation_cell.obsticle
                 // not really necessary just to make distance between start and end cells bigger
             || destanation_cell.point.distance(&start_cell.point) < (height + width) / 2
         {
@@ -193,12 +190,12 @@ impl Maze {
     pub fn set_start(&mut self, x: usize, y: usize) -> Result<Point, String> {
         let point = Point { x, y };
 
-        if self.grid[y][x].obsticle == true {
-            return Err(format!("Can't place path on wall at {}", point));
+        if self.grid[y][x].obsticle {
+            return Err(format!("Can't place path on wall at {point}"));
         }
 
         if self.destanation == point {
-            return Err(format!("Can't place path on destanation at {}", point));
+            return Err(format!("Can't place path on destanation at {point}"));
         }
 
         self.start = point;
@@ -209,12 +206,12 @@ impl Maze {
     pub fn set_destanation(&mut self, x: usize, y: usize) -> Result<Point, String> {
         let point = Point { x, y };
 
-        if self.grid[y][x].obsticle == true {
-            return Err(format!("Can't place path on wall at {}", point));
+        if self.grid[y][x].obsticle {
+            return Err(format!("Can't place path on wall at {point}"));
         }
 
         if self.start == point {
-            return Err(format!("Can't place path on start at {}", point));
+            return Err(format!("Can't place path on start at {point}"));
         }
 
         self.destanation = point;
@@ -226,15 +223,13 @@ impl Maze {
         for row in self.grid.iter() {
             for cell in row.iter() {
                 if cell.obsticle {
-                    print!("{}", OBSTICLE);
+                    print!("{OBSTICLE}");
+                } else if cell.point == self.start {
+                    print!("{START}");
+                } else if cell.point == self.destanation {
+                    print!("{DESTINATION}");
                 } else {
-                    if cell.point == self.start {
-                        print!("{}", START);
-                    } else if cell.point == self.destanation {
-                        print!("{}", DESTINATION);
-                    } else {
-                        print!("{}", PATH);
-                    }
+                    print!("{PATH}");
                 }
             }
             println!();
@@ -294,8 +289,8 @@ impl Maze {
 
         let mut expanded = HashSet::new();
 
-        while open.len() > 0 {
-            let mut lowest_fscore = usize::max_value();
+        while !open.is_empty() {
+            let mut lowest_fscore = usize::MAX;
             let mut point = &self.start;
             let mut f_score;
             for el in open.iter() {
@@ -316,11 +311,12 @@ impl Maze {
                     continue;
                 }
 
-                let new_cost_to_neighbor: usize = g_scores[point] + point.distance(&neighbor.point);
+                let new_cost_to_neighbor: usize =
+                    g_scores[point] + point.distance(&neighbor.point);
 
                 open.insert(&neighbor.point);
 
-                if g_scores.get(&neighbor.point).is_some() {
+                if g_scores.contains_key(&neighbor.point) {
                     if new_cost_to_neighbor < g_scores[&neighbor.point] {
                         g_scores.insert(&neighbor.point, new_cost_to_neighbor);
                     }
@@ -366,19 +362,17 @@ impl Maze {
         for row in self.grid.iter() {
             for cell in row.iter() {
                 if cell.obsticle {
-                    print!("{}", OBSTICLE);
+                    print!("{OBSTICLE}");
+                } else if cell.point == self.start {
+                    print!("{START}");
+                } else if cell.point == self.destanation {
+                    print!("{DESTINATION}");
+                } else if path.contains(&cell.point) {
+                    print!("{TRACE}");
+                } else if expanded.contains(&cell.point) {
+                    print!("{EXPANDED}");
                 } else {
-                    if cell.point == self.start {
-                        print!("{}", START);
-                    } else if cell.point == self.destanation {
-                        print!("{}", DESTINATION);
-                    } else if path.contains(&cell.point) {
-                        print!("{}", TRACE);
-                    } else if expanded.contains(&cell.point) {
-                        print!("{}", EXPANDED);
-                    } else {
-                        print!("{}", PATH);
-                    }
+                    print!("{PATH}");
                 }
             }
             println!();
