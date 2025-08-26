@@ -13,7 +13,7 @@ pub fn encoding(data: &str) -> String {
         i += 1;
     }
 
-    return encoded;
+    encoded
 }
 
 pub fn decoding(data: &str) -> String {
@@ -30,7 +30,7 @@ pub fn decoding(data: &str) -> String {
         }
     }
 
-    return decoded;
+    decoded
 }
 
 #[cfg(test)]
@@ -39,12 +39,18 @@ mod tests {
 
     #[test]
     fn encoding_test() {
-        let result = encoding("wwwwddr");
+        let message = "wwwwddr";
+        println!("Message: {message}");
+        let result = encoding(message);
+        println!("Encoded Message: {result}");
         assert_eq!(result, "4w2d1r");
     }
     #[test]
     fn decoding_test() {
-        let result = decoding("4w2d2r");
+        let encoded_message = "4w2d2r";
+        println!("Encoded Message:: {encoded_message}");
+        let result = decoding(encoded_message);
+        println!("Decoded Message: {result}");
         assert_eq!(result, "wwwwddrr");
     }
 }
