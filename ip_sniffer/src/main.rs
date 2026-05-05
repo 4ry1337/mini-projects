@@ -20,14 +20,11 @@ fn scan(addr: IpAddr, threads: u16) {
         thread::spawn(move || {
             let mut port: u16 = i + 1;
             loop {
-                match TcpStream::connect(format!("{}:{}", addr, port)) {
-                    Ok(_) => {
-                        print!(".");
-                        io::stdout().flush().unwrap();
-                        tx.send(port).unwrap();
-                        thread::sleep(Duration::from_secs(1));
-                    }
-                    Err(_) => {}
+                if TcpStream::connect(format!("{}:{}", addr, port)).is_ok() {
+                    print!(".");
+                    io::stdout().flush().unwrap();
+                    tx.send(port).unwrap();
+                    thread::sleep(Duration::from_secs(1));
                 }
 
                 if (MAX - port) <= threads {
@@ -47,7 +44,7 @@ fn scan(addr: IpAddr, threads: u16) {
         out.push(p);
     }
 
-    println!("");
+    println!();
 
     out.sort();
 
