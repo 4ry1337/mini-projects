@@ -1,0 +1,1 @@
+/mnt/windows/Users/thego/Documents/Dev/github.com/4ry1337/mini-projects/collatz_sequence/target/debug/collatz_sequence: /mnt/windows/Users/thego/Documents/Dev/github.com/4ry1337/mini-projects/collatz_sequence/src/main.rs
