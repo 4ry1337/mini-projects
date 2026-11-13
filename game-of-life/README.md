@@ -1,20 +1,52 @@
-# Game of life
+# Game of Life
 
-![Game of Life demo](https://github.com/4ry1337/mini-projects/blob/master/game-of-life/demo.gif)
+Conway's Game of Life, drawn in the terminal with ANSI colors.
 
-**The Game of Life**, also known as **Conway's Game of Life** or **simply Life**, is a cellular automaton devised by the British mathematician John Horton Conway in 1970.
+**Status: runs.**
 
-It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input.
+![Game of Life demo](demo.gif)
 
-One interacts with the Game of Life by creating an initial configuration and observing how it evolves.
+The Game of Life is a cellular automaton that John Horton Conway devised in
+1970. Each cell is alive or dead. On every tick, all cells update at once:
 
-It is Turing complete and can simulate a universal constructor or any other Turing machine.
+- A live cell with 2 or 3 live neighbours stays alive. Otherwise it dies.
+- A dead cell with exactly 3 live neighbours comes alive.
 
-# How to run:
-```
+It is a zero-player game. The first state decides everything that follows.
+
+## Usage
+
+```sh
 cargo run
 ```
 
-TODO
+The program places cells at random and then runs the game. Each frame shows
+the seed, the tick count and the population. Live cells are green and dead
+cells are white. The game stops when no cells are left. Press `Ctrl+C` to stop
+it sooner.
 
-- [ ] Colors
+With devenv, run `devenv shell` first. It provides the Rust toolchain.
+
+## Configuration
+
+`src/main.rs` sets the values. Change them there:
+
+| Value | Default | Meaning |
+| --- | --- | --- |
+| `seed` | `1337` | Seed for the random start. The same seed gives the same game. |
+| `population` | `75` | Number of live cells at the start |
+| `height`, `width` | `15`, `20` | Grid size in cells |
+
+The tick time is 33 ms, set in `Conway::run` in [`src/conway.rs`](src/conway.rs).
+
+## Known Issues
+
+- The edges do not wrap. Cells beyond the edge count as dead.
+- A pattern that never dies out, such as a still life, runs forever.
+- `population` must not be larger than `height × width`, or
+  `random_generation` never finishes.
+- Each tick copies the next grid instead of swapping the two buffers.
+
+## License
+
+[MIT](../LICENSE) © 2024-2026 Rakhat Yskak

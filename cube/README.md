@@ -1,46 +1,47 @@
-# Rotating ASCII Cube in Rust
+# Rotating ASCII Cube
 
-A terminal-based **3D rotating cube renderer** written in Rust. It projects a cube into ASCII art with ANSI colors, updating in real time.
+A 3D cube that spins in the terminal, drawn in ASCII with ANSI colors.
 
-![Cube](https://github.com/4ry1337/mini-projects/blob/master/cube/demo.gif)
+**Status: runs.**
 
----
+![Cube demo](demo.gif)
 
-## Features
-
-* Rotating cube rendered directly in the terminal
-* Adjustable resolution (`height × width`) and cube size
-* **Random or fixed rotation speed**
-* Colorized cube faces using ANSI escape codes
-* Z-buffering for correct face visibility
-* Configurable initial rotation and custom speed per axis
-
----
+Each frame, the program samples points on the six faces of a cube. It rotates
+them about all three axes, then projects them onto the screen. A z-buffer keeps
+only the point nearest the camera in each cell. Each face gets its own shade,
+from the 256-color range 46 to 51.
 
 ## Usage
 
-### Run
-
-```bash
+```sh
 cargo run
 ```
 
-This starts the cube animation with random rotation speed.
+The cube turns at a random speed. Press `Ctrl+C` to stop.
 
----
+With devenv, run `devenv shell` first. It provides the Rust toolchain.
 
-## Controls
+## Configuration
 
-Since this is a rendering demo:
+`main.rs` sets the values. Change them there:
 
-* Stop with `Ctrl+C`.
-* Adjust terminal size for best viewing.
-* Modify parameters in `main.rs` to change resolution, cube size, or speed.
+| Call | Effect |
+| --- | --- |
+| `Cube::new(30, 80, 15)` | Screen of 30 rows by 80 columns. The cube reaches 15 units from its center. |
+| `cube.random_rotation()` | Picks a new speed for each axis every step, from 0 to 0.20. |
+| `cube.set_speed(x, y, z)` | Fixed speed per axis. The default is `0.07, 0.07, 0.1`. |
+| `cube.set_initial_rotation(x, y, z)` | Start angles, in radians. |
 
----
+The frame time is 33 ms, set in `Cube::run`.
 
-## TODO
+## Known Issues
 
-* [ ] Add keyboard controls for pausing, adjusting speed, or resetting rotation
-* [ ] Export frames to GIF for previews in README
-* [ ] Support multiple cube instances on screen
+- The rotation speed is also the step size for sampling the faces. A small
+  speed makes each frame slow. A speed of 0 never ends the sampling loop, so
+  the program hangs.
+- The terminal must be at least 80 columns wide and 31 rows tall. If it is
+  smaller, lines wrap and the image breaks.
+
+## License
+
+[MIT](../LICENSE) © 2024-2026 Rakhat Yskak

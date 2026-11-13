@@ -63,7 +63,7 @@ pub struct Maze {
     pub height: usize,
     pub width: usize,
     pub start: Point,
-    pub destanation: Point,
+    pub distanation: Point,
     pub grid: Vec<Vec<Cell>>,
 }
 
@@ -166,16 +166,16 @@ impl Maze {
         let mut x = rng.gen_range(0..width);
         let mut y = rng.gen_range(0..height);
 
-        let mut destanation_cell = grid[y][x];
+        let mut distanation_cell = grid[y][x];
 
-        while destanation_cell.point == start_cell.point
-            || destanation_cell.obsticle
+        while distanation_cell.point == start_cell.point
+            || distanation_cell.obsticle
                 // not really necessary just to make distance between start and end cells bigger
-            || destanation_cell.point.distance(&start_cell.point) < (height + width) / 2
+            || distanation_cell.point.distance(&start_cell.point) < (height + width) / 2
         {
             x = rng.gen_range(0..width);
             y = rng.gen_range(0..height);
-            destanation_cell = grid[y][x];
+            distanation_cell = grid[y][x];
         }
 
         Self {
@@ -183,7 +183,7 @@ impl Maze {
             width,
             grid,
             start: start_cell.point,
-            destanation: destanation_cell.point,
+            distanation: distanation_cell.point,
         }
     }
 
@@ -194,8 +194,8 @@ impl Maze {
             return Err(format!("Can't place path on wall at {point}"));
         }
 
-        if self.destanation == point {
-            return Err(format!("Can't place path on destanation at {point}"));
+        if self.distanation == point {
+            return Err(format!("Can't place path on distanation at {point}"));
         }
 
         self.start = point;
@@ -203,7 +203,7 @@ impl Maze {
         Ok(self.start)
     }
 
-    pub fn set_destanation(&mut self, x: usize, y: usize) -> Result<Point, String> {
+    pub fn set_distanation(&mut self, x: usize, y: usize) -> Result<Point, String> {
         let point = Point { x, y };
 
         if self.grid[y][x].obsticle {
@@ -214,9 +214,9 @@ impl Maze {
             return Err(format!("Can't place path on start at {point}"));
         }
 
-        self.destanation = point;
+        self.distanation = point;
 
-        Ok(self.destanation)
+        Ok(self.distanation)
     }
 
     pub fn draw(&self) {
@@ -226,7 +226,7 @@ impl Maze {
                     print!("{OBSTICLE}");
                 } else if cell.point == self.start {
                     print!("{START}");
-                } else if cell.point == self.destanation {
+                } else if cell.point == self.distanation {
                     print!("{DESTINATION}");
                 } else {
                     print!("{PATH}");
@@ -270,7 +270,7 @@ impl Maze {
 
         let mut h_scores = HashMap::new();
 
-        h_scores.insert(&self.start, self.start.distance(&self.destanation));
+        h_scores.insert(&self.start, self.start.distance(&self.distanation));
 
         let mut parent = HashMap::new();
 
@@ -303,7 +303,7 @@ impl Maze {
             expanded.insert(point);
             open.remove(point);
             closed.insert(point);
-            if point == &self.destanation {
+            if point == &self.distanation {
                 break;
             }
             for neighbor in self.neighbors(point) {
@@ -326,7 +326,7 @@ impl Maze {
 
                 parent.insert(&neighbor.point, point);
 
-                h_scores.insert(&neighbor.point, neighbor.point.distance(&self.destanation));
+                h_scores.insert(&neighbor.point, neighbor.point.distance(&self.distanation));
             }
             //
             //for row in self.grid.iter() {
@@ -336,7 +336,7 @@ impl Maze {
             //        } else {
             //            if cell.point == self.start {
             //                print!("{}", START);
-            //            } else if cell.point == self.destanation {
+            //            } else if cell.point == self.distanation {
             //                print!("{}", DESTINATION);
             //            } else if expanded.contains(&cell.point) {
             //                print!("{}", EXPANDED);
@@ -350,7 +350,7 @@ impl Maze {
         }
         let mut path = HashSet::new();
 
-        let mut current = &self.destanation;
+        let mut current = &self.distanation;
 
         while current != &self.start {
             path.insert(current);
@@ -365,7 +365,7 @@ impl Maze {
                     print!("{OBSTICLE}");
                 } else if cell.point == self.start {
                     print!("{START}");
-                } else if cell.point == self.destanation {
+                } else if cell.point == self.distanation {
                     print!("{DESTINATION}");
                 } else if path.contains(&cell.point) {
                     print!("{TRACE}");

@@ -1,100 +1,39 @@
-# Run-Length Encoding (RLE) in Rust
+# Run-Length Encoding
 
-A simple implementation of **run-length encoding (RLE)** and decoding in Rust.
+Run-length encoding and decoding of strings.
 
----
+**Status: library with two tests.**
 
-## Features
-
-* **Encoding**: Compresses a string by replacing consecutive repeating characters with a count followed by the character.
-
-  * Example: `"wwwwddr"` → `"4w2d1r"`
-* **Decoding**: Expands the encoded string back to its original form.
-
-  * Example: `"4w2d2r"` → `"wwwwddrr"`
-* Includes unit tests for correctness.
-
----
+Run-length encoding replaces each run of the same character with a count and
+the character. For example, `"wwwwddr"` becomes `"4w2d1r"`. Decoding expands
+each count again. Counts can have more than one digit, such as `"12a"`.
 
 ## Usage
 
-### Encode
+The crate has no binary. Run the tests:
 
-```rust
-use crate::encoding;
-
-fn main() {
-    let message = "wwwwddr";
-    let encoded = encoding(message);
-    println!("Encoded: {}", encoded); // "4w2d1r"
-}
-```
-
-### Decode
-
-```rust
-use crate::decoding;
-
-fn main() {
-    let encoded = "4w2d2r";
-    let decoded = decoding(encoded);
-    println!("Decoded: {}", decoded); // "wwwwddrr"
-}
-```
-
----
-
-## Tests
-
-Run tests with:
-
-```bash
+```sh
 cargo test
 ```
 
-Example test output:
+Add `-- --nocapture` to see the messages the tests print.
 
-```
-running 2 tests
-test tests::encoding_test ... ok
-test tests::decoding_test ... ok
-```
+```rust
+use rle::{decoding, encoding};
 
----
-
-## Debugging
-
-To see the debug output inside tests, use `-- --nocapture`:
-
-```bash
-cargo test -- --nocapture
+assert_eq!(encoding("wwwwddr"), "4w2d1r");
+assert_eq!(decoding("4w2d2r"), "wwwwddrr");
 ```
 
-Example output:
+## Known Issues
 
-```
-running 2 tests
-Message: wwwwddr
-Encoded Message: 4w2d1r
-Encoded Message:: 4w2d2r
-Decoded Message: wwwwddrr
-test tests::encoding_test ... ok
-test tests::decoding_test ... ok
-```
+- Digits in the input are lost, because the decoder reads them as counts. For
+  example, `"a11"` encodes and then decodes to `"a"`.
+- `encoding` panics on non-ASCII input such as `"éé"`. It mixes byte
+  positions with character positions.
+- `decoding` panics if a character has no count before it, as in `"ab"`.
+- `encoding` calls `chars().nth(i)` in a loop, so it takes quadratic time.
 
----
+## License
 
-## Code Overview
-
-* **`encoding(data: &str) -> String`**
-  Iterates over input, counts consecutive characters, and outputs `<count><char>` pairs.
-* **`decoding(data: &str) -> String`**
-  Parses counts and expands characters accordingly.
-
----
-
-## TODO
-
-* [ ] Handle multi-digit counts more robustly in encoding
-* [ ] Add CLI interface for file compression/decompression
-* [ ] Benchmark performance on large inputs
+[MIT](../LICENSE) © 2024-2026 Rakhat Yskak

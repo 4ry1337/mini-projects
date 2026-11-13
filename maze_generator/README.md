@@ -1,41 +1,48 @@
-# Maze Generator & Solver
+# Maze Generator and Solver
 
-A Rust library and CLI tool for generating random mazes and solving them using the **A\*** pathfinding algorithm. The maze is displayed directly in the terminal with ANSI colors for walls, paths, start, destination, and the search trace.
+Generates a random maze with Prim's algorithm and solves it with A\*, drawn in the terminal with ANSI colors.
 
----
+**Status: runs.**
 
-## Features
+The generator starts with a grid of walls. It opens a random cell, then grows
+the maze with randomized Prim's algorithm: it picks a random frontier cell two
+steps away and carves a path to it. Then it places a destination far from the
+start. The solver runs A\* with the Manhattan distance as its heuristic.
 
-* Random maze generation using randomized Prim’s algorithm
-* Configurable size (`height × width`)
-* Customizable **start** and **destination** points
-* Maze visualization with colored output:
-  * **Black** = Wall
-  * **White** = Path
-  * **Green** = Start
-  * **Red** = Destination
-  * **Cyan** = Expanded nodes during search
-  * **Blue** = Final path trace
-* Pathfinding with the **A\*** algorithm (Manhattan/Euclidean distance heuristics)
+## Usage
 
----
-
-## Run
-
-```bash
+```sh
 cargo run
 ```
 
-This will:
+The program prints the maze, a `---` line, and then the solved maze. Each run
+gives a new maze.
 
-1. Generate a random maze (default `20 × 20`).
-2. Print the maze with start and destination marked.
-3. Solve it using A\* and display the explored space and final path.
+| Color | Meaning |
+| --- | --- |
+| Black | Wall |
+| White | Open path |
+| Green | Start |
+| Red | Destination |
+| Cyan | Cells that A\* expanded |
+| Blue | The path found |
 
----
+With devenv, run `devenv shell` first. It provides the Rust toolchain.
 
-## TODO
+## Configuration
 
-* [ ] Add alternative pathfinding algorithms (BFS, Dijkstra)
-* [ ] Command-line arguments for maze size and seed
-* [ ] Export maze to image formats
+`src/main.rs` calls `Maze::generate(20, 20)`. Change the height and width
+there. `Maze::set_start` and `Maze::set_distanation` move the two end points.
+They return an error if the cell is a wall or the other end point.
+
+## Known Issues
+
+- `Point::euclidian_distance` exists, but nothing calls it. The solver only
+  uses the Manhattan distance.
+- A\* finds the next node with a linear scan of the open set, not a priority
+  queue. This is fine for small mazes but slow for big ones.
+- The generator uses `thread_rng`, so a maze cannot be repeated with a seed.
+
+## License
+
+[MIT](../LICENSE) © 2024-2026 Rakhat Yskak
